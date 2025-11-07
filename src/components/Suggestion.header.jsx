@@ -3,7 +3,7 @@ import React from 'react';
 function SuggestionHeader() {
   return (
     <header>
-      <nav className="container mx-auto flex justify-between items-center bg-gradient-to-r from-teal-700 via-blue-700 to-pink-500 py-2 px-4 shadow-md">
+      <nav className="container mx-auto flex justify-between items-center bg-gradient-to-r from-teal-800  to-blue-500 py-2 px-4 shadow-md">
         
         {/* Logo */}
         <div className="font-extrabold text-2xl bg-gradient-to-r from-teal-500 via-blue-400 to-pink-500 text-transparent bg-clip-text tracking-wide">
