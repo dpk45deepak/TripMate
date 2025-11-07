@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import RingLoader from '../components/RingLoader';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -14,12 +14,40 @@ import {
 } from "react-icons/fa";
 import TopDestination from '../components/TopDestination';
 import SuggestionHeader from '../components/Suggestion.header';
-import { useTrips } from '../context/TripsContext';
 
 const TripSuggestions = () => {
   const navigate = useNavigate();
-  const { recommendations, loading, error } = useTrips();
-  console.log("Recommendations:", recommendations);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch data from the URL
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://trip-teal.vercel.app/api/destinations');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Fetched data:", data);
+        
+        // Assuming the API returns an array of trips
+        // If the structure is different, you might need to adjust this
+        setRecommendations(Array.isArray(data) ? data : data.recommendations || data.trips || []);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to load trip recommendations");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTripId, setSelectedTripId] = useState("");
@@ -29,7 +57,9 @@ const TripSuggestions = () => {
     if (!searchTerm) return recommendations;
     return recommendations.filter(trip =>
       trip?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trip?.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      trip?.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trip?.destinationType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trip?.type?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, recommendations]);
 
@@ -168,7 +198,7 @@ const TripSuggestions = () => {
               >
                 <div className="relative h-60 overflow-hidden">
                   <img
-                    src={trip?.image || 'https://via.placeholder.com/400x300'}
+                    src={trip?.image || trip?.photo || trip?.imageUrl || 'https://via.placeholder.com/400x300'}
                     alt={trip?.name || 'Trip image'}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                     onError={(e) => {
@@ -177,29 +207,29 @@ const TripSuggestions = () => {
                   />
                   <div className="absolute top-3 left-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm flex items-center">
                     <FaStar className="text-yellow-400 mr-1" />
-                    {trip?.rating || 'N/A'}
+                    {trip?.rating || trip?.stars || 'N/A'}
                   </div>
                 </div>
 
                 <div className="p-6 space-y-3">
-                  <h3 className="text-xl font-bold text-gray-800">{trip?.name || 'Unnamed Trip'}</h3>
+                  <h3 className="text-xl font-bold text-gray-800">{trip?.name || trip?.title || 'Unnamed Trip'}</h3>
                   <div className="flex items-center text-gray-600">
                     <FaMapMarkerAlt className="text-red-500 mr-2" />
-                    <span>{trip?.location || 'Unknown location'}</span>
+                    <span>{trip?.location || trip?.city || trip?.country || 'Unknown location'}</span>
                   </div>
                   <div className="flex justify-between text-gray-700 pt-2 border-t border-gray-100">
                     <span className="flex items-center">
                       <FaCalendarAlt className="mr-2 text-blue-500" />
-                      {trip?.days || 'N/A'} Days
+                      {trip?.days || trip?.duration || 'N/A'} Days
                     </span>
                     <span className="flex items-center font-semibold">
                       <FaRupeeSign className="mr-1 text-green-600" />
-                      {trip?.price || 'N/A'}
+                      {trip?.price || trip?.cost || 'N/A'}
                     </span>
                   </div>
                   <div className="flex items-center mt-2">
                     <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                      {trip?.destinationType || trip?.type || 'Unknown Type'}
+                      {trip?.destinationType || trip?.type || trip?.category || 'Unknown Type'}
                     </span>
                   </div>
                 </div>

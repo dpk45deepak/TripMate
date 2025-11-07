@@ -24,6 +24,8 @@ export const TripsProvider = ({ children }) => {
 
     try {
       const response = await axios.post(`${API_BASE_URL}/api/destinations/`);
+      console.log("Response from server:", response.data);
+      console.log("Trip Type:", tripType);
       setRecommendations(response.data || []);
     } catch (err) {
       console.error("Error fetching recommendations:", err);
